@@ -76,6 +76,17 @@ class robot():
             data = self.socketRobo.recv(1024)
             print(f"Received {data!r}")
 
+
+    def movimentmvs_list(self, pos):  # pos agora é esperado ser uma lista
+    # A conversão para float é redundante se já garantimos que pos contém floats
+        command = "1;1;EXECPPOS=({}, {}, {}, {}, {}, {})".format(*pos)  # Desempacota a lista diretamente
+        self.socketRobo.sendall(command.encode())  # Envia os vetores
+        data = self.socketRobo.recv(1024)
+        print(f"Received {data!r}")
+        self.socketRobo.sendall(b"1;1;EXECMVS PPOS")  # Manda o robô para a posição
+        data = self.socketRobo.recv(1024)
+        print(f"Received {data!r}")
+
     def movimentmvs(self, pos): #função que determina o movimento do robô de acordo com a posição da mão
         positions = pos.split(",")
         self.socketRobo.sendall("1;1;EXECPPOS=({}, {}, {}, {}, {}, {})".format((float(positions[0])), float(positions[1]), float(positions[2]),
@@ -202,30 +213,61 @@ class robot():
 
 
     def draw_x(self, pos:str, height:int, font_size:int):
-        positions = pos.split(",")
+        positions = [float(p.strip()) for p in pos.split(",")]  # Converte cada item para float e remove espaços extras
 
+        # Cria a posição aérea aumentando a coordenada Z
+        p1_aerea = positions.copy()
+        p1_aerea[2] += height  # Adiciona a altura especificada ao eixo Z
+        # Ajusta as coordenadas X e Y para criar o ponto 1 do "X"
         p1 = positions.copy()
-        p1[0] = float(p1[0]) - 5*font_size #x
-        p1[1] = float(p1[1]) - 5*font_size #y
-
-        self.movimentmvs(ast.literal_eval(p1))
-
-        p2 = positions.copy()
-        p2[0] = float(p2[0]) + 5*font_size #x
-        p2[1] = float(p2[1]) + 5*font_size #y
-
-        self.movimentmvs(ast.literal_eval(p2))
-
-        p3 = positions.copy()
-        p3[0] = float(p3[0]) - 5*font_size #x
-        p3[1] = float(p3[1]) + 5*font_size #y
-
-        self.movimentmvs(ast.literal_eval(p3))
-
-        p4 = positions.copy()
-        p4[0] = float(p4[0]) + 5*font_size #x
-        p4[4] = float(p4[1]) - 5*font_size #y
-
-        self.movimentmvs(ast.literal_eval(p4))
+        p1[0] -= 5 * font_size  # Ajusta X
+        p1[1] -= 5 * font_size  # Ajusta Y
+        # Primeiro, move para a posição aérea
+        self.movimentmvs_list(p1_aerea)
         time.sleep(3)
+        # Depois, move para a posição final
+        self.movimentmvs_list(p1)
+        time.sleep(0.3)
+
+        # Cria a posição aérea aumentando a coordenada Z
+        p2_aerea = positions.copy()
+        p2_aerea[2] += height  # Adiciona a altura especificada ao eixo Z
+        # Ajusta as coordenadas X e Y para criar o ponto 2 do "X"
+        p2 = positions.copy()
+        p2[0] += 5 * font_size  # Ajusta X
+        p2[1] += 5 * font_size  # Ajusta Y
+        # Primeiro, move para a posição aérea
+        # Depois, move para a posição final
+        self.movimentmvs_list(p2)
+        time.sleep(1)
+        self.movimentmvs_list(p2_aerea)
+        time.sleep(0.3)
+
+        # Cria a posição aérea aumentando a coordenada Z
+        p3_aerea = positions.copy()
+        p3_aerea[2] += height  # Adiciona a altura especificada ao eixo Z
+        # Ajusta as coordenadas X e Y para criar o ponto 3 do "X"
+        p3 = positions.copy()
+        p3[0] -= 5 * font_size  # Ajusta X
+        p3[1] += 5 * font_size  # Ajusta Y
+        # Primeiro, move para a posição aérea
+        self.movimentmvs_list(p3_aerea)
+        time.sleep(1)
+        # Depois, move para a posição final
+        self.movimentmvs_list(p3)
+        time.sleep(0.3)
+
+        # Cria a posição aérea aumentando a coordenada Z
+        p4_aerea = positions.copy()
+        p4_aerea[2] += height  # Adiciona a altura especificada ao eixo Z
+        # Ajusta as coordenadas X e Y para criar o ponto 4 do "X"
+        p4 = positions.copy()
+        p4[0] += 5 * font_size  # Ajusta X
+        p4[1] -= 5 * font_size  # Ajusta Y
+        # Primeiro, move para a posição aérea
+        # Depois, move para a posição final
+        self.movimentmvs_list(p4)
+        time.sleep(1)
+        self.movimentmvs_list(p4_aerea)
+        time.sleep(0.3)
 
